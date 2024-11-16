@@ -4,7 +4,6 @@ import logging
 import requests
 import subprocess
 from services.file_management import download_file
-from services.gcp_toolkit import upload_to_gcs, GCP_BUCKET_NAME
 
 # Set the default local storage directory
 STORAGE_PATH = "/tmp/"
@@ -64,7 +63,7 @@ def generate_style_line(options):
     style_options = {
         'Name': 'Default',
         'Fontname': options.get('font_name', 'Arial'),
-        'Fontsize': options.get('font_size', 24),
+        'Fontsize': options.get('font_size', 12),
         'PrimaryColour': options.get('primary_color', '&H00FFFFFF'),
         'OutlineColour': options.get('outline_color', '&H00000000'),
         'BackColour': options.get('back_color', '&H00000000'),
@@ -203,16 +202,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             logger.error(f"Job {job_id}: FFmpeg error: {error_message}")
             raise
 
-        # Upload the output video to GCP Storage
-        output_filename = upload_to_gcs(output_path, GCP_BUCKET_NAME)
-        logger.info(f"Job {job_id}: File uploaded to GCS at {output_filename}")
+        # The upload process will be handled by the calling function
+        return output_path
 
         # Clean up local files
         os.remove(video_path)
         os.remove(srt_path)
         os.remove(output_path)
         logger.info(f"Job {job_id}: Local files cleaned up")
-        return output_filename
     except Exception as e:
         logger.error(f"Job {job_id}: Error in process_captioning: {str(e)}")
         raise
